@@ -29,7 +29,7 @@ const App: React.FC = () => {
     const fetchData = async () => {
       try {
         let getFeedback = await axios.get(
-          "https://feedback-1b4u.onrender.com/CRUD/cruds"
+          "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk"
         );
         setTodos(getFeedback.data);
       } catch (error) {
@@ -55,7 +55,7 @@ const App: React.FC = () => {
       let getUpdateFeedbackId = updatedTodos[editIndex]._id;
       try {
         let getFeedback = await axios.patch(
-          "https://feedback-1b4u.onrender.com/CRUD/cruds/" +
+          "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk" +
             getUpdateFeedbackId,
           feedbackData
         );
@@ -69,8 +69,8 @@ const App: React.FC = () => {
     } else {
       // Adding new todo
       let getFeedback = await axios.post(
-        "https://feedback-1b4u.onrender.com/CRUD/cruds/",
-        feedbackData
+        "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk",
+        [feedbackData]
       );
       if (getFeedback.status === 200) {
         alert("Added successfully");
@@ -90,12 +90,27 @@ const App: React.FC = () => {
 
   const handleDelete = async (index: number) => {
     const updatedTodos = todos.filter((_, i) => i !== index);
-    let delteid = todos[index]._id;
-    let getFeedback = await axios.delete(
-      "https://feedback-1b4u.onrender.com/CRUD/cruds/" + delteid
-    );
-    if (getFeedback.status === 200) alert("deleted successfully");
-    setTodos(updatedTodos);
+    let delteid: string | undefined = todos[index]._id;
+
+    // Array of IDs to delete
+    let ids = ["6721fd053c494fc6cbe9ed16", "6722107017c813b358d1e25f"];
+
+    try {
+      // Pass the IDs in the `data` property of the configuration object
+      let getFeedback = await axios.delete(
+        "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk",
+        {
+          data: [delteid],
+        }
+      );
+
+      if (getFeedback.status === 200) {
+        alert("Deleted successfully");
+        setTodos(updatedTodos);
+      }
+    } catch (error) {
+      console.error("Error deleting:", error);
+    }
   };
 
   return (

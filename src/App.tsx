@@ -55,11 +55,11 @@ const App: React.FC = () => {
       );
       console.log(editIndex, "editIndex");
       console.log(updatedTodos, "updatedTodos");
-      let getUpdateFeedbackId = updatedTodos[editIndex].id;
+      let updateFeedback = updatedTodos[editIndex];
       try {
         let getFeedback = await axios.patch(
           "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk" ,
-          [feedbackData]
+          [updateFeedback]
         );
         if (getFeedback.status === 200) alert("updated successfully");
 

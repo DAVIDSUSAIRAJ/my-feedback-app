@@ -7,12 +7,12 @@ import {
   List,
   ListItem,
   ListItemText,
-  IconButton,
 } from "@mui/material";
 import axios from "axios";
 import davidUniqueId from "david-unique-id";
-interface Todo {
-  id: number;
+
+interface Feedback {
+  id: number; // Changed to string since `davidUniqueId` returns a string
   title: string;
   description: string;
   createdAt?: Date;
@@ -23,92 +23,92 @@ interface Todo {
 const App: React.FC = () => {
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [editIndex, setEditIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        let getFeedback = await axios.get(
+        const response = await axios.get(
           "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk"
         );
-        setTodos(getFeedback.data);
+        setFeedbacks(response.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
 
     fetchData();
-    // console.log(davidUniqueId(),"kkkkk")
   }, []);
 
-  const handleAddTodo = async () => {
-    let feedbackData:Todo = {
+  const handleAddFeedback = async () => {
+    const feedbackData: Feedback = {
       title,
       description,
-      id:davidUniqueId(),
+      id: davidUniqueId(),
     };
+
     if (editIndex !== null) {
-      // Editing existing todo
-      const updatedTodos = todos.map((todo, index) =>
-        index === editIndex ? { ...todo, title, description } : todo
+      // Editing existing feedback
+      const updatedFeedbacks = feedbacks.map((feedback, index) =>
+        index === editIndex ? { ...feedback, title, description } : feedback
       );
-      console.log(editIndex, "editIndex");
-      console.log(updatedTodos, "updatedTodos");
-      let updateFeedback = updatedTodos[editIndex];
+
+      const updateFeedback = updatedFeedbacks[editIndex];
       try {
-        let getFeedback = await axios.patch(
-          "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk" ,
+        const response = await axios.patch(
+          "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk",
           [updateFeedback]
         );
-        if (getFeedback.status === 200) alert("updated successfully");
+        if (response.status === 200) alert("Updated successfully");
 
-        setTodos(updatedTodos);
+        setFeedbacks(updatedFeedbacks);
         setEditIndex(null);
       } catch (error) {
         console.log(error);
       }
     } else {
-      // Adding new todo
-      let getFeedback = await axios.post(
-        "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk",
-        [feedbackData]
-      );
-      if (getFeedback.status === 200) {
-        alert("Added successfully");
+      // Adding new feedback
+      try {
+        const response = await axios.post(
+          "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk",
+          [feedbackData]
+        );
+        if (response.status === 200) {
+          alert("Added successfully");
+          setFeedbacks([...feedbacks, feedbackData]);
+        }
+      } catch (error) {
+        console.error("Error adding feedback:", error);
       }
-      setTodos([...todos, feedbackData]);
     }
+
     setTitle("");
     setDescription("");
   };
 
   const handleEdit = (index: number) => {
-    const todo = todos[index];
-    setTitle(todo.title);
-    setDescription(todo.description);
+    const feedback = feedbacks[index];
+    setTitle(feedback.title);
+    setDescription(feedback.description);
     setEditIndex(index);
   };
 
   const handleDelete = async (index: number) => {
-    const updatedTodos = todos.filter((_, i) => i !== index);
-    let delteid: number | undefined = todos[index].id;
-
-    // Array of IDs to delete
-    // let ids = ["6721fd053c494fc6cbe9ed16", "6722107017c813b358d1e25f"];
+    const updatedFeedbacks = feedbacks.filter((_, i) => i !== index);
+    const deleteId: number = feedbacks[index].id;
 
     try {
-      // Pass the IDs in the `data` property of the configuration object
-      let getFeedback = await axios.delete(
+      const response = await axios.delete(
         "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk",
         {
-          data: [delteid],
+          data: [deleteId],
         }
       );
 
-      if (getFeedback.status === 200) {
+      if (response.status === 200) {
         alert("Deleted successfully");
-        setTodos(updatedTodos);
+        setFeedbacks(updatedFeedbacks);
       }
     } catch (error) {
       console.error("Error deleting:", error);
@@ -117,7 +117,7 @@ const App: React.FC = () => {
 
   return (
     <Container maxWidth="sm" style={{ marginTop: "20px" }}>
-      <h1>Todo App</h1>
+      <h1>Feedback App</h1>
       <TextField
         label="Title"
         value={title}
@@ -135,24 +135,23 @@ const App: React.FC = () => {
       <Button
         variant="contained"
         color="primary"
-        onClick={handleAddTodo}
+        onClick={handleAddFeedback}
         fullWidth
         style={{ marginTop: "10px" }}
       >
-        {editIndex !== null ? "Update Todo" : "Add Todo"}
+        {editIndex !== null ? "Update Feedback" : "Add Feedback"}
       </Button>
 
       <List style={{ marginTop: "20px" }}>
-        {todos.map((todo, index) => (
+        {feedbacks.map((feedback, index) => (
           <ListItem
-            key={index}
+            key={feedback.id} // Use feedback.id as the key
             style={{
               backgroundColor: index === editIndex ? "#f0f0f0" : "transparent",
               marginBottom: "10px",
             }}
           >
-            <ListItemText primary={todo.title} secondary={todo.description} />
-
+            <ListItemText primary={feedback.title} secondary={feedback.description} />
             <Button onClick={() => handleEdit(index)}>Edit</Button>
             <Button onClick={() => handleDelete(index)}>Delete</Button>
           </ListItem>

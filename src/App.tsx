@@ -10,8 +10,9 @@ import {
   IconButton,
 } from "@mui/material";
 import axios from "axios";
+import davidUniqueId from "david-unique-id";
 interface Todo {
-  _id?: string;
+  id: number;
   title: string;
   description: string;
   createdAt?: Date;
@@ -38,12 +39,14 @@ const App: React.FC = () => {
     };
 
     fetchData();
+    // console.log(davidUniqueId(),"kkkkk")
   }, []);
 
   const handleAddTodo = async () => {
-    let feedbackData = {
+    let feedbackData:Todo = {
       title,
       description,
+      id:davidUniqueId(),
     };
     if (editIndex !== null) {
       // Editing existing todo
@@ -52,12 +55,11 @@ const App: React.FC = () => {
       );
       console.log(editIndex, "editIndex");
       console.log(updatedTodos, "updatedTodos");
-      let getUpdateFeedbackId = updatedTodos[editIndex]._id;
+      let getUpdateFeedbackId = updatedTodos[editIndex].id;
       try {
         let getFeedback = await axios.patch(
-          "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk" +
-            getUpdateFeedbackId,
-          feedbackData
+          "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk" ,
+          [feedbackData]
         );
         if (getFeedback.status === 200) alert("updated successfully");
 
@@ -75,7 +77,7 @@ const App: React.FC = () => {
       if (getFeedback.status === 200) {
         alert("Added successfully");
       }
-      setTodos([...todos, { title, description }]);
+      setTodos([...todos, feedbackData]);
     }
     setTitle("");
     setDescription("");
@@ -90,10 +92,10 @@ const App: React.FC = () => {
 
   const handleDelete = async (index: number) => {
     const updatedTodos = todos.filter((_, i) => i !== index);
-    let delteid: string | undefined = todos[index]._id;
+    let delteid: number | undefined = todos[index].id;
 
     // Array of IDs to delete
-    let ids = ["6721fd053c494fc6cbe9ed16", "6722107017c813b358d1e25f"];
+    // let ids = ["6721fd053c494fc6cbe9ed16", "6722107017c813b358d1e25f"];
 
     try {
       // Pass the IDs in the `data` property of the configuration object

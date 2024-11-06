@@ -42,7 +42,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleAddFeedback = async () => {
-    if(title === "" || description === "") return alert("Please fill in both the title and description.");
+    if(title === "" || description === "") return alert("Please fill in both the name and feedback.");
     const feedbackData: Feedback = {
       title,
       description,
@@ -123,14 +123,14 @@ const App: React.FC = () => {
     <Container maxWidth="sm" style={{ marginTop: "20px" }}>
       <h1>Share your feedback</h1>
       <TextField
-        label="Title"
+        label="Your name"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         fullWidth
         margin="normal"
       />
       <TextField
-        label="Description"
+        label="Your feedback"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         fullWidth

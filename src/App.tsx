@@ -42,6 +42,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleAddFeedback = async () => {
+    if(title === "" || description === "") return alert("Please fill in both the title and description.");
     const feedbackData: Feedback = {
       title,
       description,
@@ -108,7 +109,10 @@ const App: React.FC = () => {
 
       if (response.status === 200) {
         alert("Deleted successfully");
+        setTitle("");
+        setDescription("");
         setFeedbacks(updatedFeedbacks);
+        setEditIndex(null);
       }
     } catch (error) {
       console.error("Error deleting:", error);
@@ -117,7 +121,7 @@ const App: React.FC = () => {
 
   return (
     <Container maxWidth="sm" style={{ marginTop: "20px" }}>
-      <h1>Feedback App</h1>
+      <h1>Share your feedback</h1>
       <TextField
         label="Title"
         value={title}
@@ -134,10 +138,13 @@ const App: React.FC = () => {
       />
       <Button
         variant="contained"
-        color="primary"
         onClick={handleAddFeedback}
         fullWidth
-        style={{ marginTop: "10px" }}
+        style={{
+          marginTop: "10px",
+          backgroundColor: editIndex !== null ? "#3d6efaf5" : "#2e7d32", // Dark green for update, dark blue for add
+          color: "#fff", // White text color for contrast
+        }}
       >
         {editIndex !== null ? "Update Feedback" : "Add Feedback"}
       </Button>
@@ -147,13 +154,36 @@ const App: React.FC = () => {
           <ListItem
             key={feedback.id} // Use feedback.id as the key
             style={{
-              backgroundColor: index === editIndex ? "#f0f0f0" : "transparent",
+              backgroundColor: index === editIndex ? "#EBE4E9" : "#f5f5f5",
               marginBottom: "10px",
+              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
             }}
           >
-            <ListItemText primary={feedback.title} secondary={feedback.description} />
-            <Button onClick={() => handleEdit(index)}>Edit</Button>
-            <Button onClick={() => handleDelete(index)}>Delete</Button>
+            <ListItemText
+              primary={feedback.title}
+              secondary={feedback.description}
+            />
+            <Button
+              onClick={() => handleEdit(index)}
+              style={{
+                backgroundColor: "#f4e563", // Light yellow for Edit
+                color: "#333", // Dark text for readability
+                marginRight: "8px",
+                textTransform: "none", // To keep text style simple
+              }}
+            >
+              Edit
+            </Button>
+            <Button
+              onClick={() => handleDelete(index)}
+              style={{
+                backgroundColor: "#ffcdd2", // Light red for Delete
+                color: "#b71c1c", // Dark red text for contrast
+                textTransform: "none",
+              }}
+            >
+              Delete
+            </Button>
           </ListItem>
         ))}
       </List>

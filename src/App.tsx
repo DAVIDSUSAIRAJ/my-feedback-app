@@ -149,7 +149,7 @@ const App: React.FC = () => {
       >
         {editIndex !== null ? "Update Feedback" : "Add Feedback"}
       </Button>
-       <Grid2 style= {{height:"375px",overflowY:"scroll"}}>
+       <Grid2 style= {{height:"225px",overflowY:"scroll"}}>
       <List style={{ marginTop: "5px",}}>
         {feedbacks.map((feedback, index) => (
           <ListItem

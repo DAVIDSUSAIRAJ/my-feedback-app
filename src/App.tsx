@@ -7,6 +7,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  Grid2,
 } from "@mui/material";
 import axios from "axios";
 import davidUniqueId from "david-unique-id";
@@ -120,7 +121,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="sm" style={{ marginTop: "20px" }}>
+    <Container maxWidth="sm" style={{ marginTop: "10px" }}>
       <h1>Share your feedback</h1>
       <TextField
         label="Your name"
@@ -148,8 +149,8 @@ const App: React.FC = () => {
       >
         {editIndex !== null ? "Update Feedback" : "Add Feedback"}
       </Button>
-
-      <List style={{ marginTop: "20px" }}>
+       <Grid2 style= {{height:"375px",overflowY:"scroll"}}>
+      <List style={{ marginTop: "5px",}}>
         {feedbacks.map((feedback, index) => (
           <ListItem
             key={feedback.id} // Use feedback.id as the key
@@ -187,6 +188,7 @@ const App: React.FC = () => {
           </ListItem>
         ))}
       </List>
+      </Grid2>
     </Container>
   );
 };

@@ -177,12 +177,22 @@ const App: React.FC = () => {
     <>
       <ToastContainer />
       <Container maxWidth="sm" style={{ marginTop: "20px" }}>
-        <h1>Share your Feedback</h1>
+        <h1 style={{ marginBottom: "10px" }}>Share your Feedback</h1>
+        <p
+          style={{
+            color: "#555",
+            fontSize: "16px",
+            marginBottom: "10px",
+            marginTop: "0",
+          }}
+        >
+          Feel free to add, update, or delete your feedback—don't hesitate to
+          share your thoughts!
+        </p>
         <TextField
-          name="title" 
+          name="title"
           label="Your Name *"
           value={title}
-          // onChange={(e) => setTitle(e.target.value)}
           onChange={handleInputChange}
           fullWidth
           margin="normal"
@@ -194,7 +204,6 @@ const App: React.FC = () => {
           label="Your Feedback *"
           value={description}
           onChange={handleInputChange}
-          // onChange={(e) => setDescription(e.target.value)}
           fullWidth
           margin="normal"
           multiline
@@ -214,7 +223,9 @@ const App: React.FC = () => {
         >
           {editIndex !== null ? "Update Feedback" : "Add Feedback"}
         </Button>
-        <Grid2 style={{ height: "225px", overflowY: "scroll", marginTop: "20px" }}>
+        <Grid2
+          style={{ height: "205px", overflowY: "scroll", marginTop: "20px" }}
+        >
           <List>
             {feedbacks.map((feedback, index) => (
               <ListItem

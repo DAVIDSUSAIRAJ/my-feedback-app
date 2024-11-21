@@ -1,4 +1,3 @@
-// src/App.tsx
 import React, { useEffect, useState } from "react";
 import {
   Container,
@@ -11,11 +10,11 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import davidUniqueId from "david-unique-id";
-import { ToastContainer, toast } from "react-toastify"; // Import Toast
-import "react-toastify/dist/ReactToastify.css"; // Import the CSS for notifications
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Feedback {
-  id: number; // Changed to string since `davidUniqueId` returns a string
+  id: number; // `davidUniqueId` returns a string
   title: string;
   description: string;
   createdAt?: Date;
@@ -28,6 +27,9 @@ const App: React.FC = () => {
   const [description, setDescription] = useState<string>("");
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [errors, setErrors] = useState<{ title?: string; description?: string }>(
+    {}
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,20 +39,27 @@ const App: React.FC = () => {
         );
         setFeedbacks(response.data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        toast.error("Error fetching feedbacks. Please try again later.");
       }
     };
 
     fetchData();
   }, []);
-  const toastDuration = ()=>{
-    return{
-      autoClose: 1200 // 500ms
-    }
-  }
+
+  const validateFields = (): boolean => {
+    const validationErrors: { title?: string; description?: string } = {};
+    if (!title) validationErrors.title = "Name is required.";
+    if (!description) validationErrors.description = "Feedback is required.";
+    if (description.length < 10)
+      validationErrors.description = "Feedback must be at least 10 characters.";
+
+    setErrors(validationErrors);
+    return Object.keys(validationErrors).length === 0;
+  };
 
   const handleAddFeedback = async () => {
-    if(title === "" || description === "") return  toast.warning("Please fill in both the name and feedback.",toastDuration())
+    if (!validateFields()) return;
+
     const feedbackData: Feedback = {
       title,
       description,
@@ -58,42 +67,38 @@ const App: React.FC = () => {
     };
 
     if (editIndex !== null) {
-      // Editing existing feedback
       const updatedFeedbacks = feedbacks.map((feedback, index) =>
         index === editIndex ? { ...feedback, title, description } : feedback
       );
-
-      const updateFeedback = updatedFeedbacks[editIndex];
       try {
         const response = await axios.patch(
           "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk",
-          [updateFeedback]
+          [updatedFeedbacks[editIndex]]
         );
-        if (response.status === 200) toast.success("Updated successfully",toastDuration());
-
+        if (response.status === 200) toast.success("Updated successfully.");
         setFeedbacks(updatedFeedbacks);
         setEditIndex(null);
       } catch (error) {
-        console.log(error);
+        toast.error("Error updating feedback. Please try again.");
       }
     } else {
-      // Adding new feedback
       try {
         const response = await axios.post(
           "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk",
           [feedbackData]
         );
         if (response.status === 200) {
-          toast.success("Added successfully.",toastDuration());
+          toast.success("Feedback added successfully.");
           setFeedbacks([...feedbacks, feedbackData]);
         }
       } catch (error) {
-        console.error("Error adding feedback:", error);
+        toast.error("Error adding feedback. Please try again.");
       }
     }
 
     setTitle("");
     setDescription("");
+    setErrors({});
   };
 
   const handleEdit = (index: number) => {
@@ -101,31 +106,30 @@ const App: React.FC = () => {
     setTitle(feedback.title);
     setDescription(feedback.description);
     setEditIndex(index);
+    setErrors({});
   };
 
   const handleDelete = async (index: number) => {
+    const deleteId = feedbacks[index].id;
     const updatedFeedbacks = feedbacks.filter((_, i) => i !== index);
-    const deleteId: number = feedbacks[index].id;
 
     try {
       const response = await axios.delete(
         "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk",
-        {
-          data: [deleteId],
-        }
+        { data: [deleteId] }
       );
-
       if (response.status === 200) {
-        toast.success("Deleted successfully",toastDuration());
-        setTitle("");
-        setDescription("");
+        toast.success("Feedback deleted successfully.");
         setFeedbacks(updatedFeedbacks);
         setEditIndex(null);
+        setTitle("");
+        setDescription("");
       }
     } catch (error) {
-      console.error("Error deleting:", error);
+      toast.error("Error deleting feedback. Please try again.");
     }
   };
+
   const isDisabled = (title: string): boolean => {
     const lowerCaseTitle = title?.toLocaleLowerCase();
     return (
@@ -134,82 +138,85 @@ const App: React.FC = () => {
       lowerCaseTitle === "surendar"
     );
   };
-  
 
   return (
     <>
-    <ToastContainer />
-    <Container maxWidth="sm" style={{ marginTop: "10px" }}>
-      <h1>Share your feedback</h1>
-      <TextField
-        label="Your name"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        label="Your feedback"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        fullWidth
-        margin="normal"
-      />
-      <Button
-        variant="contained"
-        onClick={handleAddFeedback}
-        fullWidth
-        style={{
-          marginTop: "10px",
-          backgroundColor: editIndex !== null ? "#3d6efaf5" : "#2e7d32", // Dark green for update, dark blue for add
-          color: "#fff", // White text color for contrast
-        }}
-      >
-        {editIndex !== null ? "Update Feedback" : "Add Feedback"}
-      </Button>
-       <Grid2 style= {{height:"225px",overflowY:"scroll"}}>
-      <List style={{ marginTop: "5px",}}>
-        {feedbacks.map((feedback, index) => (
-          <ListItem
-            key={feedback.id} // Use feedback.id as the key
-            style={{
-              backgroundColor: index === editIndex ? "#EBE4E9" : "#f5f5f5",
-              marginBottom: "10px",
-              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-            }}
-          >
-            <ListItemText
-              primary={feedback.title}
-              secondary={feedback.description}
-            />
-            <Button
-              disabled={isDisabled(feedback.title)}
-              onClick={() => handleEdit(index)}
-              style={{
-                backgroundColor: "#f4e563", // Light yellow for Edit
-                color: "#333", // Dark text for readability
-                marginRight: "8px",
-                textTransform: "none", // To keep text style simple
-              }}
-            >
-              Edit
-            </Button>
-            <Button
-             disabled={isDisabled(feedback.title)}
-              onClick={() => handleDelete(index)}
-              style={{
-                backgroundColor: "#ffcdd2", // Light red for Delete
-                color: "#b71c1c", // Dark red text for contrast
-                textTransform: "none",
-              }}
-            >
-              Delete
-            </Button>
-          </ListItem>
-        ))}
-      </List>
-      </Grid2>
-    </Container>
+      <ToastContainer />
+      <Container maxWidth="sm" style={{ marginTop: "20px" }}>
+        <h1>Share your Feedback</h1>
+        <TextField
+          label="Your Name"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          fullWidth
+          margin="normal"
+          error={!!errors.title}
+          helperText={errors.title}
+        />
+        <TextField
+          label="Your Feedback"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          fullWidth
+          margin="normal"
+          multiline
+          rows={3}
+          error={!!errors.description}
+          helperText={errors.description}
+        />
+        <Button
+          variant="contained"
+          onClick={handleAddFeedback}
+          fullWidth
+          style={{
+            marginTop: "10px",
+            backgroundColor: editIndex !== null ? "#3d6efaf5" : "#2e7d32",
+            color: "#fff",
+          }}
+        >
+          {editIndex !== null ? "Update Feedback" : "Add Feedback"}
+        </Button>
+        <Grid2 style={{ height: "225px", overflowY: "scroll", marginTop: "20px" }}>
+          <List>
+            {feedbacks.map((feedback, index) => (
+              <ListItem
+                key={feedback.id}
+                style={{
+                  backgroundColor: index === editIndex ? "#EBE4E9" : "#f5f5f5",
+                  marginBottom: "10px",
+                  boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                <ListItemText
+                  primary={feedback.title}
+                  secondary={feedback.description}
+                />
+                <Button
+                  disabled={isDisabled(feedback.title)}
+                  onClick={() => handleEdit(index)}
+                  style={{
+                    backgroundColor: "#f4e563",
+                    color: "#333",
+                    marginRight: "8px",
+                  }}
+                >
+                  Edit
+                </Button>
+                <Button
+                  disabled={isDisabled(feedback.title)}
+                  onClick={() => handleDelete(index)}
+                  style={{
+                    backgroundColor: "#ffcdd2",
+                    color: "#b71c1c",
+                  }}
+                >
+                  Delete
+                </Button>
+              </ListItem>
+            ))}
+          </List>
+        </Grid2>
+      </Container>
     </>
   );
 };

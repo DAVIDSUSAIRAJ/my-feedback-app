@@ -11,6 +11,8 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import davidUniqueId from "david-unique-id";
+import { ToastContainer, toast } from "react-toastify"; // Import Toast
+import "react-toastify/dist/ReactToastify.css"; // Import the CSS for notifications
 
 interface Feedback {
   id: number; // Changed to string since `davidUniqueId` returns a string
@@ -41,9 +43,14 @@ const App: React.FC = () => {
 
     fetchData();
   }, []);
+  const toastDuration = ()=>{
+    return{
+      autoClose: 1200 // 500ms
+    }
+  }
 
   const handleAddFeedback = async () => {
-    if(title === "" || description === "") return alert("Please fill in both the name and feedback.");
+    if(title === "" || description === "") return  toast.warning("Please fill in both the name and feedback.",toastDuration())
     const feedbackData: Feedback = {
       title,
       description,
@@ -62,7 +69,7 @@ const App: React.FC = () => {
           "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk",
           [updateFeedback]
         );
-        if (response.status === 200) alert("Updated successfully");
+        if (response.status === 200) toast.success("Updated successfully",toastDuration());
 
         setFeedbacks(updatedFeedbacks);
         setEditIndex(null);
@@ -77,7 +84,7 @@ const App: React.FC = () => {
           [feedbackData]
         );
         if (response.status === 200) {
-          alert("Added successfully");
+          toast.success("Added successfully.",toastDuration());
           setFeedbacks([...feedbacks, feedbackData]);
         }
       } catch (error) {
@@ -109,7 +116,7 @@ const App: React.FC = () => {
       );
 
       if (response.status === 200) {
-        alert("Deleted successfully");
+        toast.success("Deleted successfully",toastDuration());
         setTitle("");
         setDescription("");
         setFeedbacks(updatedFeedbacks);
@@ -119,8 +126,19 @@ const App: React.FC = () => {
       console.error("Error deleting:", error);
     }
   };
+  const isDisabled = (title: string): boolean => {
+    const lowerCaseTitle = title?.toLocaleLowerCase();
+    return (
+      lowerCaseTitle === "subramanian" ||
+      lowerCaseTitle === "karthick raja" ||
+      lowerCaseTitle === "surendar"
+    );
+  };
+  
 
   return (
+    <>
+    <ToastContainer />
     <Container maxWidth="sm" style={{ marginTop: "10px" }}>
       <h1>Share your feedback</h1>
       <TextField
@@ -165,6 +183,7 @@ const App: React.FC = () => {
               secondary={feedback.description}
             />
             <Button
+              disabled={isDisabled(feedback.title)}
               onClick={() => handleEdit(index)}
               style={{
                 backgroundColor: "#f4e563", // Light yellow for Edit
@@ -176,6 +195,7 @@ const App: React.FC = () => {
               Edit
             </Button>
             <Button
+             disabled={isDisabled(feedback.title)}
               onClick={() => handleDelete(index)}
               style={{
                 backgroundColor: "#ffcdd2", // Light red for Delete
@@ -190,6 +210,7 @@ const App: React.FC = () => {
       </List>
       </Grid2>
     </Container>
+    </>
   );
 };
 

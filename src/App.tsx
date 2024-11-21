@@ -30,7 +30,11 @@ const App: React.FC = () => {
   const [errors, setErrors] = useState<{ title?: string; description?: string }>(
     {}
   );
-
+  const toastDuration =()=>{
+    return{
+      autoClose: 1300 // 500ms
+    }
+   }
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -39,7 +43,7 @@ const App: React.FC = () => {
         );
         setFeedbacks(response.data);
       } catch (error) {
-        toast.error("Error fetching feedbacks. Please try again later.");
+        toast.error("Error fetching feedbacks. Please try again later.",toastDuration());
       }
     };
 
@@ -49,13 +53,43 @@ const App: React.FC = () => {
   const validateFields = (): boolean => {
     const validationErrors: { title?: string; description?: string } = {};
     if (!title) validationErrors.title = "Name is required.";
-    if (!description) validationErrors.description = "Feedback is required.";
     if (description.length < 10)
       validationErrors.description = "Feedback must be at least 10 characters.";
 
     setErrors(validationErrors);
     return Object.keys(validationErrors).length === 0;
   };
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+
+    if (name === "title") {
+      setTitle(value);
+      if (value.length > 2) {
+        setErrors((prevErrors) => ({ ...prevErrors, title: undefined }));
+      } else {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          title: "Name must be at least 3 characters.",
+        }));
+      }
+    }
+
+    if (name === "description") {
+      setDescription(value);
+      if (value.length >= 10) {
+        setErrors((prevErrors) => ({ ...prevErrors, description: undefined }));
+      } else {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          description: "Feedback must be at least 10 characters.",
+        }));
+      }
+    }
+  };
+
+
 
   const handleAddFeedback = async () => {
     if (!validateFields()) return;
@@ -75,11 +109,11 @@ const App: React.FC = () => {
           "https://feedback-1b4u.onrender.com/CRUD/cruds/bulk",
           [updatedFeedbacks[editIndex]]
         );
-        if (response.status === 200) toast.success("Updated successfully.");
+        if (response.status === 200) toast.success("Updated successfully.",toastDuration());
         setFeedbacks(updatedFeedbacks);
         setEditIndex(null);
       } catch (error) {
-        toast.error("Error updating feedback. Please try again.");
+        toast.error("Error updating feedback. Please try again.",toastDuration());
       }
     } else {
       try {
@@ -88,11 +122,11 @@ const App: React.FC = () => {
           [feedbackData]
         );
         if (response.status === 200) {
-          toast.success("Feedback added successfully.");
+          toast.success("Feedback added successfully.",toastDuration());
           setFeedbacks([...feedbacks, feedbackData]);
         }
       } catch (error) {
-        toast.error("Error adding feedback. Please try again.");
+        toast.error("Error adding feedback. Please try again.",toastDuration());
       }
     }
 
@@ -119,14 +153,14 @@ const App: React.FC = () => {
         { data: [deleteId] }
       );
       if (response.status === 200) {
-        toast.success("Feedback deleted successfully.");
+        toast.success("Feedback deleted successfully.",toastDuration());
         setFeedbacks(updatedFeedbacks);
         setEditIndex(null);
         setTitle("");
         setDescription("");
       }
     } catch (error) {
-      toast.error("Error deleting feedback. Please try again.");
+      toast.error("Error deleting feedback. Please try again.",toastDuration());
     }
   };
 
@@ -145,18 +179,22 @@ const App: React.FC = () => {
       <Container maxWidth="sm" style={{ marginTop: "20px" }}>
         <h1>Share your Feedback</h1>
         <TextField
-          label="Your Name"
+          name="title" 
+          label="Your Name *"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          // onChange={(e) => setTitle(e.target.value)}
+          onChange={handleInputChange}
           fullWidth
           margin="normal"
           error={!!errors.title}
           helperText={errors.title}
         />
         <TextField
-          label="Your Feedback"
+          name="description"
+          label="Your Feedback *"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={handleInputChange}
+          // onChange={(e) => setDescription(e.target.value)}
           fullWidth
           margin="normal"
           multiline
